@@ -7,11 +7,11 @@ from scripts.database_import.common import go
 class AuthorshipImporter:
     keys_mapping = {
         'AvtorId': '',
-        'BookId': '',
+        'libbook.BookId': '',
     }
     table_name = 'libavtor'
     filters = {
-        'Deleted': 0,
+        'libbook.Deleted': 0,
     }
     order = ''
     join = 'JOIN libbook ON libavtor.BookId = libbook.BookId'

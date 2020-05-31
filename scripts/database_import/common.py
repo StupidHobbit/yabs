@@ -34,7 +34,11 @@ async def go(importer: Importer):
     ) if importer.filters is not None else ''
 
     async with connection.cursor() as cursor:
-        await cursor.execute(f'SELECT COUNT(*) FROM {importer.table_name} {where_str};')
+        await cursor.execute(
+            f'SELECT COUNT(*) '
+            f'FROM {importer.table_name} '
+            f'{importer.join} '            
+            f'{where_str};')
         total, = await cursor.fetchone()
 
     async with connection.cursor() as cursor:
@@ -46,7 +50,7 @@ async def go(importer: Importer):
             f'{importer.order};'
         )
 
-        with tqdm(total=total, desc='Importing authors') as progress:
+        with tqdm(total=total, desc='Importing') as progress:
             async for row in cursor:
                 await importer.process_row(row)
                 progress.update()

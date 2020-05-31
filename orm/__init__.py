@@ -80,10 +80,8 @@ class Table(Generic[T]):
                 raise TypeError("Union doesn't make sense")
             plain_type = cls.simplify_type(args[0])
         else:
-            plain_type = complex_type
+            plain_type = origin
         if plain_type is datetime:
-            plain_type = datetime.fromisoformat
-        if issubclass(set, plain_type):
             plain_type = set
         return plain_type
 
@@ -127,6 +125,3 @@ class Table(Generic[T]):
 
     def get_set(self, id: int, name: str) -> RedisSet:
         return RedisSet(f'{self.name}{id}:{name}')
-
-
-
