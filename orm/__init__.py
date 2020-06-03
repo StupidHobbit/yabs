@@ -12,10 +12,13 @@ from typing import (
     List,
     Tuple, Callable, Set, Iterable
 )
+from contextlib import suppress
 
 import aioredis
 import redis
 from aioredis.util import wait_ok
+from redis import ResponseError
+from redisearch import Client, TextField, NumericField, Query
 
 from orm.redis_set import RedisSet
 from orm import redis_set
@@ -39,13 +42,24 @@ def connect(redis_client: aioredis.Redis):
 
 
 class Table(Generic[T]):
-    def __init__(self, model: Type[T]):
+    def __init__(self, model: Type[T], index: Optional[List[str]] = None):
         self.model: Type[T] = model
         self.name: str = model.__name__ + ':'
         self.counter_name: str = self.name + 'counter'
         self.redis_to_python = self.make_redis_to_python(model)
+        self.python_to_redis = self.make_python_to_redis(model)
         self.model_has_id = hasattr(model, 'id')
         self.sets_description = self.make_sets_description(model)
+        self.index = self.make_index(model.__name__, index)
+
+    @classmethod
+    def make_index(cls, name, index: Optional[List[str]]) -> Optional[Client]:
+        if index is None:
+            return None
+        client = Client(name)
+        with suppress(ResponseError):
+            client.create_index([TextField(field) for field in index])
+        return client
 
     @classmethod
     def make_sets_description(cls, model: Type[T]) -> List[str]:
@@ -66,10 +80,21 @@ class Table(Generic[T]):
     @classmethod
     def make_python_to_redis(cls, model: Type[T]) -> List[Tuple[str, Callable]]:
         return [
-            (key, cls.simplify_type(type))
+            (key, plain_type)
             for key, type in get_type_hints(model).items()
-            if key != 'id'
+            if (plain_type := cls.simplify_type(type)) is not set
+            and key != 'id'
         ]
+
+    @staticmethod
+    def type_to_converter_to_redis(type: Type[T]) -> Callable[[T], Union[str, int, float]]:
+        return str
+
+    @staticmethod
+    def type_to_converter_to_python(type: Type[T]) -> Callable[[str], T]:
+        if type is datetime:
+            type = datetime.fromisoformat
+        return type
 
     @classmethod
     def simplify_type(cls, complex_type: Type) -> Type:
@@ -81,8 +106,6 @@ class Table(Generic[T]):
             plain_type = cls.simplify_type(args[0])
         else:
             plain_type = origin
-        if plain_type is datetime:
-            plain_type = set
         return plain_type
 
     async def get(self, id: int) -> T:
@@ -116,12 +139,30 @@ class Table(Generic[T]):
         for set_name in self.sets_description:
             setattr(obj, set_name, RedisSet(f'{self.name}{id}:{set_name}'))
 
-        d = ((key, str(value)) for key, value in obj.__dict__.items() if value is not None and key != 'id')
-        return await wait_ok(client.execute(
+        object_dict = obj.__dict__
+        d = ((key, str(value))
+             for key, _ in self.python_to_redis
+             if (value := object_dict[key]) is not None)
+
+        key = f'{self.name}{id}'
+        await wait_ok(client.execute(
             b'HMSET',
-            f'{self.name}{id}',
+            key,
             *chain.from_iterable(d)),
         )
+        if self.index is not None:
+            sync_client.execute_command(
+                'FT.ADDHASH',
+                self.index.index_name,
+                key,
+                1.0,
+                'REPLACE',
+                'LANGUAGE',
+                'russian'
+            )
+
+    async def delete(self, id: int):
+        await client.delete(f'{self.name}{id}')
 
     def get_set(self, id: int, name: str) -> RedisSet:
         return RedisSet(f'{self.name}{id}:{name}')

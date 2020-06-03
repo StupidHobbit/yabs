@@ -1,7 +1,7 @@
 import asyncio
 
 from models import Author, authors
-from .common import go
+from scripts.database_import.common import go
 
 
 class AuthorsImporter:
@@ -29,6 +29,7 @@ class AuthorsImporter:
             if value or key.endswith('_name')
         }
         author = Author(**d)
+        await authors.delete(author.id)
         await authors.save(author)
 
 

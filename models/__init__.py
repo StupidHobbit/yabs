@@ -38,5 +38,5 @@ class Book:
     id: Optional[int] = None
 
 
-authors = Table(Author)
-books = Table(Book)
+authors = Table(Author, index=['first_name', 'middle_name', 'last_name'])
+books = Table(Book, index=['title', 'additional_title'])

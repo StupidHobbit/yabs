@@ -46,8 +46,7 @@ async def go(importer: Importer):
             f'SELECT {", ".join(importer.keys_mapping)} '
             f'FROM {importer.table_name} '
             f'{importer.join} '            
-            f'{where_str} '
-            f'{importer.order};'
+            f'{where_str};'
         )
 
         with tqdm(total=total, desc='Importing') as progress:

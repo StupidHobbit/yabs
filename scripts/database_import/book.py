@@ -34,6 +34,7 @@ class BooksImporter:
             if value or key in ['tags', 'language']
         }
         book = Book(**d)
+        await books.delete(book.id)
         await books.save(book)
 
 
