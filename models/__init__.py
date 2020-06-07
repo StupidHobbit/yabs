@@ -16,7 +16,7 @@ class Author:
     email: Optional[str] = None
     homepage: Optional[str] = None
     gender: Optional[str] = None
-    master_id: Optional[id] = None
+    master_id: Optional[int] = None
     id: Optional[int] = None
 
 
