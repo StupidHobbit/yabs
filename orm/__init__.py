@@ -10,7 +10,7 @@ from typing import (
     get_args,
     Optional,
     List,
-    Tuple, Callable, Set, Iterable
+    Tuple, Callable, Set, Iterable, Any, Dict
 )
 from contextlib import suppress
 
@@ -104,6 +104,8 @@ class Table(Generic[T]):
             if len(args) != 2 or args[1] is not type(None):
                 raise TypeError("Union doesn't make sense")
             plain_type = cls.simplify_type(args[0])
+        elif origin is None:
+            plain_type = complex_type
         else:
             plain_type = origin
         return plain_type
@@ -113,19 +115,7 @@ class Table(Generic[T]):
         if not d:
             raise IndexError
 
-        obj = self.model.__new__(self.model)
-        obj.__dict__ = {
-            key: type(value) if (value := d.get(key)) is not None else None
-            for key, type in self.redis_to_python
-        }
-
-        if self.model_has_id:
-            obj.id = id
-
-        for set_name in self.sets_description:
-            setattr(obj, set_name, RedisSet(f'{self.name}{id}:{set_name}'))
-
-        return obj
+        return self.make_object_from_dict_and_id(d, id)
 
     async def save(self, obj: T, id: Optional[int] = None):
         if id is None:
@@ -160,6 +150,27 @@ class Table(Generic[T]):
                 'LANGUAGE',
                 'russian'
             )
+
+    async def search(self, query: Union[str, Query]) -> Iterable[T]:
+        search_results = self.index.search(query)
+        return (
+            self.make_object_from_dict_and_id(result.__dict__, int(result.id.split(':')[-1]))
+            for result in search_results.docs
+        )
+
+    def make_object_from_dict_and_id(self, d: Dict[str, Any], id) -> T:
+        obj = self.model.__new__(self.model)
+        obj.__dict__ = {
+            key: type(value) if (value := d.get(key)) is not None else None
+            for key, type in self.redis_to_python
+        }
+
+        if self.model_has_id:
+            obj.id = id
+
+        for set_name in self.sets_description:
+            setattr(obj, set_name, RedisSet(f'{self.name}{id}:{set_name}'))
+        return obj
 
     async def delete(self, id: int):
         await client.delete(f'{self.name}{id}')

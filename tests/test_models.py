@@ -11,8 +11,7 @@ async def go():
     redis = await aioredis.create_redis_pool('/tmp/redis.sock', encoding='utf-8')
     connect(redis)
 
-    await books.save(Book(file_size=1, time=datetime.now(), id=1))
-    print(await books.get(1))
+    print(list(await authors.search('Терри')))
 
     redis.close()
     await redis.wait_closed()
