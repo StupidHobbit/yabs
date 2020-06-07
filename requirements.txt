@@ -1,0 +1,5 @@
+aioredis
+redis
+redisearch
+aiomysql
+tqdm
