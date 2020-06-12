@@ -72,7 +72,7 @@ class RedisSet(Set[T]):
         return sync_client.sismember(self.name, o)
 
     def __iter__(self) -> Iterator[T]:
-        return sync_client.smembers(self.name)
+        return iter(sync_client.smembers(self.name))
 
     def __str__(self) -> str:
         return str(sync_client.smembers(self.name))

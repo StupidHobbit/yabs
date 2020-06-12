@@ -1,4 +1,4 @@
-const ROOT = 'api/';
+const ROOT = '/api/';
 
 
 function get(url) {

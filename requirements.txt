@@ -3,3 +3,5 @@ redis
 redisearch
 aiomysql
 tqdm
+fastapi
+uvicorn
