@@ -42,15 +42,24 @@ def connect(redis_client: aioredis.Redis):
 
 
 class Table(Generic[T]):
-    def __init__(self, model: Type[T], index: Optional[List[str]] = None):
+    def __init__(self, model: Type[T], index: Optional[List[str]] = None, origin: Optional['Table'] = None):
         self.model: Type[T] = model
-        self.name: str = model.__name__ + ':'
+
+        if origin:
+            self.is_proxy = True
+            self.name = origin.name
+            self.index = origin.index
+        else:
+            self.is_proxy = False
+            self.name: str = model.__name__ + ':'
+            self.index = self.make_index(model.__name__, index)
+
         self.counter_name: str = self.name + 'counter'
         self.redis_to_python = self.make_redis_to_python(model)
         self.python_to_redis = self.make_python_to_redis(model)
-        self.model_has_id = hasattr(model, 'id')
+        self.model_has_id = 'id' in get_type_hints(model)
         self.sets_description = self.make_sets_description(model)
-        self.index = self.make_index(model.__name__, index)
+        self.fields = [field for field, _ in self.python_to_redis]
 
     @classmethod
     def make_index(cls, name, index: Optional[List[str]]) -> Optional[Client]:
@@ -111,7 +120,11 @@ class Table(Generic[T]):
         return plain_type
 
     async def get(self, id: int) -> T:
-        d = await client.hgetall(f'{self.name}{id}')
+        key = f'{self.name}{id}'
+        if self.is_proxy:
+            d = await client.hmget(key, self.fields)
+        else:
+            d = await client.hgetall(key)
         if not d:
             raise IndexError
 
@@ -152,24 +165,28 @@ class Table(Generic[T]):
             )
 
     async def search(self, query: Union[str, Query]) -> Iterable[T]:
-        search_results = self.index.search(query)
+        if isinstance(query, str):
+            query = Query(query)
+        search_results = self.index.search(query.return_fields(*self.fields))
         return (
             self.make_object_from_dict_and_id(result.__dict__, int(result.id.split(':')[-1]))
             for result in search_results.docs
         )
 
     def make_object_from_dict_and_id(self, d: Dict[str, Any], id) -> T:
-        obj = self.model.__new__(self.model)
-        obj.__dict__ = {
+        d = {
             key: type(value) if (value := d.get(key)) is not None else None
             for key, type in self.redis_to_python
         }
 
         if self.model_has_id:
-            obj.id = id
+            d['id'] = id
 
         for set_name in self.sets_description:
-            setattr(obj, set_name, RedisSet(f'{self.name}{id}:{set_name}'))
+            d[set_name] = RedisSet(f'{self.name}{id}:{set_name}')
+
+        obj = self.model(**d)
+
         return obj
 
     async def delete(self, id: int):

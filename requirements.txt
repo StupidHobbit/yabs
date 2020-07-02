@@ -4,4 +4,4 @@ redisearch
 aiomysql
 tqdm
 fastapi
-uvicorn
+pydantic
