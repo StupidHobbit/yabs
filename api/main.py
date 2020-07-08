@@ -11,4 +11,4 @@ async def setup():
     connect(redis)
 
 
-app = FastAPI(on_startup=[setup])
+app = FastAPI(on_startup=[setup], title='Yabs', redoc_url=None)
