@@ -43,10 +43,10 @@ def download_redis():
     os.chdir('..')
 
     subprocess.call(['git', 'clone', '--recursive', 'https://github.com/RediSearch/RediSearch.git'], stdout=sys.stdout)
-    os.chdir('RediSearch')
+    os.chdir('RediSearch/src')
     subprocess.call(['make'], stdout=sys.stdout)
 
-    os.chdir('..')
+    os.chdir('../../..')
 
 
 if __name__ == '__main__':
