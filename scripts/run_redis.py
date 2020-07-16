@@ -46,7 +46,7 @@ def download_redis():
     os.chdir('RediSearch')
     subprocess.call(['make'], stdout=sys.stdout)
 
-    os.chdir('..')
+    os.chdir('../..')
 
 
 if __name__ == '__main__':
