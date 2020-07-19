@@ -4,7 +4,7 @@ import aioredis
 from tqdm import tqdm
 import aiomysql
 
-from orm import connect
+from api.orm import connect
 
 
 class Importer(Protocol):

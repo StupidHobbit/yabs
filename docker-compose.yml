@@ -1,0 +1,16 @@
+version: '3'
+services:
+  redis:
+    image: redislabs/redisearch
+    ports:
+      - "0.0.0.0:6379:6379"
+    volumes:
+      - /home/ilya/Documents/yabs/db/data:/data
+
+  service:
+    build: .
+    image: yabs_service
+    environment:
+      - REDIS_CONN_STRING=redis://192.168.0.108
+    ports:
+      - "0.0.0.0:8080:8080"

@@ -10,7 +10,7 @@ from typing import (
     get_args,
     Optional,
     List,
-    Tuple, Callable, Set, Iterable, Any, Dict
+    Tuple, Callable, Iterable, Any, Dict
 )
 from contextlib import suppress
 
@@ -18,10 +18,10 @@ import aioredis
 import redis
 from aioredis.util import wait_ok
 from redis import ResponseError
-from redisearch import Client, TextField, NumericField, Query
+from redisearch import Client, TextField, Query
 
-from orm.redis_set import RedisSet
-from orm import redis_set
+from api.orm.redis_set import RedisSet
+from api.orm import redis_set
 
 T = TypeVar('T')
 

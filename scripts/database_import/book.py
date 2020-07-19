@@ -1,6 +1,6 @@
 import asyncio
 
-from models import Book, books
+from api.models import Book, books
 from scripts.database_import.common import go
 
 

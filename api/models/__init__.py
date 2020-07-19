@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Optional, Set
 
-from orm import Table
+from api.orm import Table
 
 
 @dataclass

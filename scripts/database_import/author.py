@@ -1,6 +1,6 @@
 import asyncio
 
-from models import Author, authors
+from api.models import Author, authors
 from scripts.database_import.common import go
 
 

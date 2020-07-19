@@ -1,14 +1,15 @@
 import aioredis
 from fastapi import FastAPI
 
-from orm import connect
+from api.orm import connect
+from api.authors.search import router as authors
+import os
 
 
 async def setup():
-    import api.urls
-
-    redis = await aioredis.create_redis_pool('/tmp/redis.sock')
+    redis = await aioredis.create_redis_pool(os.environ.get('REDIS_CONN_STRING'))
     connect(redis)
 
 
 app = FastAPI(on_startup=[setup], title='Yabs', redoc_url=None)
+app.include_router(authors)

@@ -3,8 +3,8 @@ from typing import List
 from pydantic import BaseModel
 from redisearch import Query
 
-from models import authors
-from orm import Table
+from api.models import authors
+from api.orm import Table
 from fastapi import APIRouter
 
 

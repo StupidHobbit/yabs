@@ -1,10 +1,9 @@
 import asyncio
-from datetime import datetime
 
 import aioredis
 
-from models import Author, authors, books, Book
-from orm import connect
+from api.models import authors
+from api.orm import connect
 
 
 async def go():
