@@ -17,8 +17,10 @@ class SearchAuthors(BaseModel):
 
 authors_for_search = Table(SearchAuthors, origin=authors)
 
+router = APIRouter()
 
-@app.get("/search/authors", response_model=List[SearchAuthors])
+
+@router.get("/search/authors", response_model=List[SearchAuthors])
 async def search_authors(text: str):
     query = Query(text).paging(0, 20)
     return await authors_for_search.search(query)

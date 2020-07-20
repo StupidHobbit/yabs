@@ -3,6 +3,4 @@ redis
 redisearch
 aiomysql
 tqdm
-fastapi
-uvicorn
-pydantic
+fastapi[all]
