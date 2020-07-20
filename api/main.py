@@ -7,7 +7,7 @@ import os
 
 
 async def setup():
-    redis = await aioredis.create_redis_pool(os.environ.get('REDIS_CONN_STRING'))
+    redis = await aioredis.create_redis_pool('redis://redis:6379')
     connect(redis)
 
 

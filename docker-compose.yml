@@ -10,7 +10,5 @@ services:
   service:
     build: .
     image: yabs_service
-    environment:
-      - REDIS_CONN_STRING=redis://192.168.0.108
     ports:
       - "0.0.0.0:8080:8080"
