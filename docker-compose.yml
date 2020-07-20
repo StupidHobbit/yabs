@@ -5,10 +5,19 @@ services:
     ports:
       - "0.0.0.0:6379:6379"
     volumes:
-      - /home/ilya/Documents/yabs/db:/data
+      - ./db:/data
+    network_mode: "host"
 
   service:
     build: .
     image: yabs_service
     ports:
       - "0.0.0.0:8080:8080"
+    network_mode: "host"
+
+  nginx:
+    image: nginx
+    ports:
+      - "0.0.0.0:8000:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf

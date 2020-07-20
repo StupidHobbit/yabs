@@ -1,9 +1,9 @@
 from typing import List
 
+from fastapi import APIRouter
 from pydantic import BaseModel
 from redisearch import Query
 
-from api.main import app
 from models import authors
 from orm import Table
 
@@ -18,7 +18,6 @@ class SearchAuthors(BaseModel):
 authors_for_search = Table(SearchAuthors, origin=authors)
 
 router = APIRouter()
-
 
 @router.get("/search/authors", response_model=List[SearchAuthors])
 async def search_authors(text: str):

@@ -65,7 +65,7 @@ class Table(Generic[T]):
     def make_index(cls, name, index: Optional[List[str]]) -> Optional[Client]:
         if index is None:
             return None
-        client = Client(name)
+        client = Client(name, host='localhost')
         with suppress(ResponseError):
             client.create_index([TextField(field) for field in index])
         return client
@@ -92,7 +92,7 @@ class Table(Generic[T]):
             (key, plain_type)
             for key, type in get_type_hints(model).items()
             if (plain_type := cls.simplify_type(type)) is not set
-            and key != 'id'
+               and key != 'id'
         ]
 
     @staticmethod
