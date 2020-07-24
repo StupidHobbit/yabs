@@ -1,4 +1,5 @@
 from datetime import datetime
+from functools import cached_property
 from itertools import chain
 from typing import (
     TypeVar,
@@ -48,11 +49,11 @@ class Table(Generic[T]):
         if origin:
             self.is_proxy = True
             self.name = origin.name
-            self.index = origin.index
+            self._index = origin._index
         else:
             self.is_proxy = False
             self.name: str = model.__name__ + ':'
-            self.index = self.make_index(model.__name__, index)
+            self._index = index
 
         self.counter_name: str = self.name + 'counter'
         self.redis_to_python = self.make_redis_to_python(model)
@@ -61,14 +62,15 @@ class Table(Generic[T]):
         self.sets_description = self.make_sets_description(model)
         self.fields = [field for field, _ in self.python_to_redis]
 
-    @classmethod
-    def make_index(cls, name, index: Optional[List[str]]) -> Optional[Client]:
-        if index is None:
+    @cached_property
+    def index(self) -> Optional[Client]:
+        if self._index is None:
             return None
-        client = Client(name, host='localhost')
+        # TODO: fix name
+        index_client = Client(self.name[:-1], conn=sync_client)
         with suppress(ResponseError):
-            client.create_index([TextField(field) for field in index])
-        return client
+            index_client.create_index([TextField(field) for field in self._index])
+        return index_client
 
     @classmethod
     def make_sets_description(cls, model: Type[T]) -> List[str]:
@@ -130,7 +132,7 @@ class Table(Generic[T]):
 
         return self.make_object_from_dict_and_id(d, id)
 
-    async def save(self, obj: T, id: Optional[int] = None):
+    async def save(self, obj: T, id: Optional[int] = None) -> int:
         if id is None:
             id = getattr(obj, 'id', None)
             if id is None:
@@ -163,6 +165,7 @@ class Table(Generic[T]):
                 'LANGUAGE',
                 'russian'
             )
+        return id
 
     async def search(self, query: Union[str, Query]) -> Iterable[T]:
         if isinstance(query, str):

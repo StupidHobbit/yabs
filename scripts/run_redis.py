@@ -1,6 +1,7 @@
 import os
 import sys
 import subprocess
+from functools import lru_cache
 from os import path
 from time import sleep
 
@@ -16,6 +17,7 @@ def run():
         redis.terminate()
 
 
+@lru_cache
 def run_redis():
     if not path.exists(f'redis/redis-{REDIS_VERSION}'):
         download_redis()
@@ -23,8 +25,9 @@ def run_redis():
     redis = subprocess.Popen([
         f'redis-{REDIS_VERSION}/src/redis-server',
         f'redis-{REDIS_VERSION}/redis.conf',
-        '--loadmodule', 'RediSearch/src/redisearch.so'
+        '--loadmodule', 'RediSearch/src/redisearch.so',
     ], stdout=sys.stdout)
+    sleep(5)
     os.chdir('..')
     return redis
 
@@ -43,10 +46,10 @@ def download_redis():
     os.chdir('..')
 
     subprocess.call(['git', 'clone', '--recursive', 'https://github.com/RediSearch/RediSearch.git'], stdout=sys.stdout)
-    os.chdir('RediSearch/src')
+    os.chdir('RediSearch')
     subprocess.call(['make'], stdout=sys.stdout)
 
-    os.chdir('../../..')
+    os.chdir('../..')
 
 
 if __name__ == '__main__':
