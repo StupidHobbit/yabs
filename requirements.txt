@@ -3,4 +3,5 @@ redis
 redisearch
 aiomysql
 tqdm
+mypy
 fastapi[all]
