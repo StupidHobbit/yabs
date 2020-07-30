@@ -1,0 +1,18 @@
+version: '3'
+services:
+  redis-test:
+    image: redislabs/redisearch:latest
+    volumes:
+      - ./db:/data
+      - /tmp:/tmp
+    command: redis-server /data/redis.test.conf --loadmodule /usr/lib/redis/modules/redisearch.so
+    network_mode: 'host'
+
+  sut:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    depends_on:
+      - redis-test
+    volumes:
+      - /tmp:/tmp

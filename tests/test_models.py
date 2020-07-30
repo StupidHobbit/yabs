@@ -15,7 +15,4 @@ async def go():
     redis.close()
     await redis.wait_closed()
 
-asyncio.run(go())
-
-
-
+#asyncio.run(go())

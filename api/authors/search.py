@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Iterable
 
 from fastapi import APIRouter
 from pydantic import BaseModel
@@ -17,9 +17,7 @@ class SearchAuthors(BaseModel):
 
 authors_for_search = Table(SearchAuthors, origin=authors)
 
-router = APIRouter()
 
-@router.get("/search/authors", response_model=List[SearchAuthors])
-async def search_authors(text: str):
+async def search_authors(text: str) -> Iterable[SearchAuthors]:
     query = Query(text).paging(0, 20)
     return await authors_for_search.search(query)
