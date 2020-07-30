@@ -5,7 +5,7 @@ import aioredis
 from fastapi import FastAPI
 
 from orm import connect
-from api.authors.search import search_authors, SearchAuthors
+from authors import search_authors, SearchAuthors
 
 app = FastAPI(title='Yabs', redoc_url=None)
 
