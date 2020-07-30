@@ -5,6 +5,5 @@ aiomysql
 tqdm
 fastapi[all]
 Faker
-#---
 mypy
 
