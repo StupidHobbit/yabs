@@ -1,6 +1,5 @@
-from typing import List, Iterable
+from typing import Iterable
 
-from fastapi import APIRouter
 from pydantic import BaseModel
 from redisearch import Query
 

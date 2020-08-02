@@ -5,7 +5,8 @@ import aioredis
 from fastapi import FastAPI
 
 from orm import connect
-from api.authors.search import search_authors, SearchAuthors
+from api.authors import search_authors, SearchAuthors
+from api.books import search_books, SearchBooks
 
 app = FastAPI(title='Yabs', redoc_url=None)
 
@@ -26,3 +27,4 @@ async def startup():
 
 
 app.add_api_route('/search/authors', search_authors, response_model=List[SearchAuthors])
+app.add_api_route('/search/books', search_books, response_model=List[SearchBooks])
