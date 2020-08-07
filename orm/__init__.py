@@ -42,6 +42,12 @@ def connect(redis_client: aioredis.Redis):
     redis_set.sync_client = sync_client
 
 
+class GetError(LookupError):
+    def __init__(self, table: 'Table', id: int):
+        self.table = table
+        self.id = id
+
+
 class Table(Generic[T]):
     def __init__(self, model: Type[T], index: Optional[List[str]] = None, origin: Optional['Table'] = None):
         self.model: Type[T] = model
@@ -124,11 +130,11 @@ class Table(Generic[T]):
     async def get(self, id: int) -> T:
         key = f'{self.name}{id}'
         if self.is_proxy:
-            d = await client.hmget(key, self.fields)
+            d = await client.hmget(key, *self.fields)
         else:
             d = await client.hgetall(key)
         if not d:
-            raise IndexError
+            raise GetError(table=self, id=id)
 
         return self.make_object_from_dict_and_id(d, id)
 
